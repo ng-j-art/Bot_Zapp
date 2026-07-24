@@ -18,6 +18,7 @@ const path = require("path");
 const P = require("pino");
 const qrcode = require("qrcode-terminal");
 const { Boom } = require("@hapi/boom");
+const http = require("http");
 const {
   default: makeWASocket,
   useMultiFileAuthState,
@@ -37,6 +38,7 @@ const AGENT_PHONE = RAW_AGENT_PHONE.replace(/\D/g, "");
 const OPEN_HOUR = parseInt(process.env.OPEN_HOUR || "9", 10);
 const CLOSE_HOUR = parseInt(process.env.CLOSE_HOUR || "13", 10);
 const TIMEZONE = process.env.TIMEZONE || "Africa/Douala";
+const PORT = process.env.PORT || 3000;
 
 // ---------- Etat de conversation par utilisateur (en memoire) ----------
 // cle: jid de l'utilisateur, valeur: { state, lastActivity }
@@ -233,3 +235,13 @@ function extractText(msg) {
 }
 
 start();
+
+// ---------- Serveur HTTP pour Render (Port Binding) ----------
+const server = http.createServer((req, res) => {
+  res.writeHead(200, { "Content-Type": "text/plain; charset=utf-8" });
+  res.end("Bot WhatsApp connecté et prêt !\n");
+});
+
+server.listen(PORT, "0.0.0.0", () => {
+  console.log(`✅ Serveur HTTP d'écoute démarré sur le port ${PORT}`);
+});
