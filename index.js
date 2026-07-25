@@ -88,9 +88,10 @@ function hoursText() {
 
 // ---------- Demarrage du bot ----------
 async function start() {
-  const { state, saveCreds } = await useMultiFileAuthState(
-    path.join(__dirname, "auth_info")
-  );
+  const authFolder = process.env.RAILWAY_VOLUME_MOUNT_PATH
+    ? path.join(process.env.RAILWAY_VOLUME_MOUNT_PATH, "auth_info")
+    : path.join(__dirname, "auth_info");
+  const { state, saveCreds } = await useMultiFileAuthState(authFolder);
 
   let version = [2, 3000, 1015901307]; // Version de secours si fetchLatestBaileysVersion echoue
   try {
