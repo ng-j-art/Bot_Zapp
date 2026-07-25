@@ -17,6 +17,7 @@ require("dotenv").config();
 const path = require("path");
 const P = require("pino");
 const qrcode = require("qrcode-terminal");
+const QRCode = require("qrcode");
 const { Boom } = require("@hapi/boom");
 const http = require("http");
 const {
@@ -43,6 +44,10 @@ const PORT = process.env.PORT || 3000;
 // ---------- Etat de conversation par utilisateur (en memoire) ----------
 // cle: jid de l'utilisateur, valeur: { state, lastActivity }
 const sessions = new Map();
+
+// Dernier QR code recu, affiche sur une page web (plus fiable que l'ASCII dans les logs Railway)
+let latestQR = null;
+let isConnected = false;
 
 function getSession(jid) {
   if (!sessions.has(jid)) {
@@ -114,15 +119,18 @@ async function start() {
   sock.ev.on("connection.update", (update) => {
     const { connection, lastDisconnect, qr } = update;
 
-    if (qr) {
-      console.log("\nScannez ce QR code avec WhatsApp (Parametres > Appareils lies) :\n");
-      qrcode.generate(qr, { small: true });
+   if (qr) {
+      latestQR = qr;
+      isConnected = false;
+      console.log("\nNouveau QR code recu. Ouvrez l'URL publique du service + /qr pour le scanner facilement.\n");
+      qrcode.generate(qr, { small: true }); // garde aussi l'affichage terminal, utile en local
     }
 
     if (connection === "close") {
       const statusCode = new Boom(lastDisconnect?.error)?.output?.statusCode;
       const shouldReconnect = statusCode !== DisconnectReason.loggedOut;
       console.log("Connexion fermee.", statusCode, "-> reconnexion dans 5s :", shouldReconnect);
+      isConnected = false;
       if (shouldReconnect) {
         setTimeout(() => start(), 5000);
       } else {
@@ -130,6 +138,8 @@ async function start() {
       }
     } else if (connection === "open") {
       console.log("✅ Bot WhatsApp connecte et pret !");
+      latestQR = null;
+      isConnected = true;
     }
   });
 
@@ -237,10 +247,41 @@ function extractText(msg) {
 
 start();
 
-// ---------- Serveur HTTP pour Render (Port Binding) ----------
-const server = http.createServer((req, res) => {
+// ---------- Serveur HTTP pour Render/Railway (Port Binding + page /qr) ----------
+const server = http.createServer(async (req, res) => {
+  if (req.url === "/qr") {
+    if (isConnected) {
+      res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
+      res.end("<h2>✅ Le bot est deja connecte. Aucun QR a scanner.</h2>");
+      return;
+    }
+    if (!latestQR) {
+      res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
+      res.end("<h2>⏳ En attente de generation du QR code, rechargez dans quelques secondes...</h2>");
+      return;
+    }
+    try {
+      const dataUrl = await QRCode.toDataURL(latestQR, { width: 400 });
+      res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
+      res.end(`
+        <html>
+          <body style="display:flex;flex-direction:column;align-items:center;font-family:sans-serif;margin-top:40px;">
+            <h2>Scannez avec WhatsApp (Parametres > Appareils lies)</h2>
+            <img src="${dataUrl}" alt="QR code" />
+            <p>Cette page se recharge automatiquement toutes les 20 secondes.</p>
+            <script>setTimeout(() => location.reload(), 20000);</script>
+          </body>
+        </html>
+      `);
+    } catch (err) {
+      res.writeHead(500, { "Content-Type": "text/plain" });
+      res.end("Erreur de generation du QR code.");
+    }
+    return;
+  }
+
   res.writeHead(200, { "Content-Type": "text/plain; charset=utf-8" });
-  res.end("Bot WhatsApp connecté et prêt !\n");
+  res.end("Bot WhatsApp actif. Ouvrez /qr pour scanner le QR code si besoin.\n");
 });
 
 server.listen(PORT, "0.0.0.0", () => {
