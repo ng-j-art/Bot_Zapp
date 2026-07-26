@@ -77,14 +77,25 @@ function isOpenNow() {
 }
 
 function menuText() {
-  return (
-    `Bienvenue chez *${COMPANY_NAME}* 👋\n\n` +
-    `Que souhaitez-vous faire ?\n` +
-    `1️⃣ - En savoir plus sur nous\n` +
-    `2️⃣ - Consulter notre catalogue\n` +
-    `3️⃣ - Discuter avec un agent\n\n` +
-    `_Repondez simplement par 1, 2 ou 3._`
-  );
+  if(session.state === "NEW"){
+    return (
+      `Bienvenue chez *${COMPANY_NAME}* 👋\n\n` +
+      `Que souhaitez-vous faire ?\n` +
+      `1️⃣ - En savoir plus sur nous\n` +
+      `2️⃣ - Consulter notre catalogue\n` +
+      `3️⃣ - Discuter avec un agent\n\n` +
+      `_Repondez simplement par 1, 2 ou 3._`
+    );
+  }else {
+    return (
+      `*${COMPANY_NAME}* \n\n` +
+      `Que souhaitez-vous faire ?\n` +
+      `1️⃣ - En savoir plus sur nous\n` +
+      `2️⃣ - Consulter notre catalogue\n` +
+      `3️⃣ - Discuter avec un agent\n\n` +
+      `_Repondez simplement par 1, 2 ou 3._`
+    );
+  }
 }
 
 function hoursText() {
