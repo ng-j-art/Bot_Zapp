@@ -76,8 +76,8 @@ function isOpenNow() {
   }
 }
 
-function menuText(state='') {
-      if(state === NEW){
+function menuText(state = ' ') {
+      if(state === "NEW"){
         return (
           `Bienvenue chez *${COMPANY_NAME}* 👋\n\n` +
           `Que souhaitez-vous faire ?\n` +
