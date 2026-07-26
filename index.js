@@ -76,8 +76,8 @@ function isOpenNow() {
   }
 }
 
-function menuText(state = ' ') {
-      if(state === "NEW"){
+function menuText(state) {
+      if(state === "welcome"){
         return (
           `Bienvenue chez *${COMPANY_NAME}* 👋\n\n` +
           `Que souhaitez-vous faire ?\n` +
@@ -186,7 +186,7 @@ async function handleMessage(sock, msg) {
   // Commande universelle pour revenir au menu a tout moment
   if (lower === "menu" || lower === "0" || session.state === "NEW") {
     session.state = "MENU";
-    await sock.sendMessage(jid, { text: menuText(NEW) });
+    await sock.sendMessage(jid, { text: menuText("welcome") });
     return;
   }
 
