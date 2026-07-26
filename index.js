@@ -84,16 +84,15 @@ function menuText(state='') {
           `1️⃣ - En savoir plus sur nous\n` +
           `2️⃣ - Consulter notre catalogue\n` +
           `3️⃣ - Discuter avec un agent\n\n` +
-          `_Repondez simplement par 1, 2 ou 3._`
+          `_Répondez simplement par 1, 2 ou 3._`
         );
       }else {
         return (
-          `*${COMPANY_NAME}* \n\n` +
-          `Que souhaitez-vous faire ?\n` +
+          `Que souhaitez-vous faire ensuite ?\n` +
           `1️⃣ - En savoir plus sur nous\n` +
           `2️⃣ - Consulter notre catalogue\n` +
           `3️⃣ - Discuter avec un agent\n\n` +
-          `_Repondez simplement par 1, 2 ou 3._`
+          `_Répondez toujours par 1, 2 ou 3._`
         );
       }
 }
@@ -148,7 +147,7 @@ async function start() {
         console.log("Deconnecte (loggedOut). Supprimez le dossier auth_info pour re-scanner un QR code.");
       }
     } else if (connection === "open") {
-      console.log("✅ Bot WhatsApp connecte et pret !");
+      console.log("Bot WhatsApp connecte et pret !");
       latestQR = null;
       isConnected = true;
     }
@@ -212,7 +211,7 @@ async function handleMessage(sock, msg) {
           // et on donne au client un lien pour appeler directement si besoin.
           await sock.sendMessage(jid, {
             text:
-              `Un instant, un de nos agents va vous contacter tres bientot ⏳\n\n` +
+              `Un instant, un de nos agents va vous contacter très bientot ⏳\n\n` +
               `Vous pouvez aussi nous appeler directement ici :\nhttps://wa.me/${AGENT_PHONE}`,
           });
           // Notification interne a l'agent
@@ -224,7 +223,7 @@ async function handleMessage(sock, msg) {
         } else {
           await sock.sendMessage(jid, {
             text:
-              `Nous sommes actuellement fermes 🙏\n` +
+              `Nous sommes actuellement fermés 🙏\n` +
               `Nos horaires d'ouverture : ${hoursText()}`,
           });
         }
@@ -233,7 +232,7 @@ async function handleMessage(sock, msg) {
 
       default:
         await sock.sendMessage(jid, {
-          text: `Je n'ai pas compris votre reponse.\n\n${menuText()}`,
+          text: `Je n'ai pas compris votre réponse.\n\n${menuText()}`,
         });
     }
     return;
@@ -263,7 +262,7 @@ const server = http.createServer(async (req, res) => {
   if (req.url === "/qr") {
     if (isConnected) {
       res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
-      res.end("<h2>✅ Le bot est deja connecte. Aucun QR a scanner.</h2>");
+      res.end("<h2>!!! Le bot est deja connecte. Aucun QR a scanner.</h2>");
       return;
     }
     if (!latestQR) {
